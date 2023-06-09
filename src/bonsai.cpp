@@ -29,22 +29,28 @@ Bonsai::Bonsai(void) {
 
 #include "globals.hpp"
 
+
 void Bonsai::falloc(file_t *file) {
     uint32_t fsize = file->size();
-    uint8_t padding = fsize < 0x20 ? 0x20 - (fsize % 0x20) : fsize % 0x20;
+    uint8_t padding = 0x100 - (fsize % 0x100);
     uint32_t total_size = fsize + padding;
     uint8_t buffer[total_size];
+    memset(buffer, 0, total_size);
     file->to_buffer(buffer);
 
-    uint32_t row_index = 0;
-    for (uint8_t i = 0; i < total_size / BYTES_PER_ROW; i++) {
-        uint8_t row_buffer[BYTES_PER_ROW];
-        for (uint8_t j = 0; j < BYTES_PER_ROW; j++) {
-            row_buffer[j] = buffer[row_index++];
-        }
+    uint32_t buffer_index = 0;
+    for (uint8_t i = 0; i < total_size / ROW_SIZE; i++) {
         nvm.erase_row(system.free_space_address);
-        nvm.write(system.free_space_address, row_buffer, BYTES_PER_ROW);
-        system.free_space_address += BYTES_PER_ROW;
+
+        for (uint8_t j = 0; j < 4; j++) {
+            uint8_t page_buffer[PAGE_SIZE];
+            memset(page_buffer, 0, 64);
+            memcpy(page_buffer, buffer + buffer_index, PAGE_SIZE);
+            nvm.write_page(system.free_space_address - PAGE_SIZE, page_buffer);
+
+            buffer_index += PAGE_SIZE;
+            system.free_space_address += PAGE_SIZE;
+        }
     }
 }
 

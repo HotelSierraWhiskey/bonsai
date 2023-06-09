@@ -68,7 +68,7 @@ class Nvmc {
 
   public:
     Nvmc(void);
-    void write(uint32_t address, uint8_t *buffer, uint8_t length);
+    void write_page(uint32_t address, uint8_t *buffer);
     void erase_row(uint32_t address);
 };
 

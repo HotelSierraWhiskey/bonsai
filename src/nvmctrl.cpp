@@ -1,5 +1,7 @@
 #include "bonsai/nvmctrl.hpp"
 
+#define NVM_MEMORY ((volatile uint16_t *)0x00U)
+
 Nvmc::Nvmc(void) {
     nvmctrl_AHB_clock_enable();
     nvmctrl_APBB_clock_enable();
@@ -15,16 +17,16 @@ void Nvmc::execute(CMD cmd) {
     }
 }
 
-void Nvmc::write(uint32_t address, uint8_t *buffer, uint8_t length) {
+void Nvmc::write_page(uint32_t address, uint8_t *buffer) {
     execute(CMD::PBC);
     uint32_t nvm_address = address >> 1;
 
-    for (uint16_t i = 0; i < length; i += 2) {
+    for (uint16_t i = 0; i < 64; i += 2) {
         uint16_t data = buffer[i];
-        if (i < (length - 1)) {
+        if (i < (64 - 1)) {
             data |= (buffer[i + 1] << 8);
         }
-        nvm_memory[nvm_address++] = data;
+        NVM_MEMORY[nvm_address++] = data;
     }
     nvmctrl->NVMCTRL_ADDR = nvm_address;
     execute(CMD::WP);
