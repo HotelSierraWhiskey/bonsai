@@ -10,14 +10,20 @@ typedef struct {
 } system_properties_row_t;
 
 class Bonsai {
+    // private:
   public:
-    part_t part;
     system_properties_row_t system;
     Nvmc nvm;
-    uint32_t fsa;
+    part_t part;
+    void update_free_space_address(uint32_t address) noexcept;
+
     Bonsai(void);
-    void falloc(file_t *file);
-    void create_file(std::string path);
+    part_t get_part(void) noexcept;
+    void erase(void) noexcept;
+    uint32_t read_free_space_address(void) noexcept;
+    void fputf(file_t &file) noexcept;
+    file_t fgetf(uint32_t address);
+    void create_file(std::string path) noexcept;
 };
 
 #endif
