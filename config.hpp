@@ -8,7 +8,7 @@
 #define BONSAI_VERSION_MINOR 1
 
 /* User-defined settings */
-#define BONSAI_MEMORY_START 0x1F400
+#define BONSAI_MEMORY_START 0x1E000
 #define BONSAI_MEMORY_END 0x20000
 
 #endif
