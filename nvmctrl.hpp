@@ -63,10 +63,10 @@ class Nvmc {
 
   private:
     void execute(CMD cmd);
-    nvmctrl_regs_t *nvmctrl;
     volatile uint16_t *nvm_memory;
 
   public:
+    nvmctrl_regs_t *nvmctrl;
     Nvmc(void);
     void write_page(uint32_t address, uint8_t *buffer);
     void erase_row(uint32_t address);
