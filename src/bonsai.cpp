@@ -27,9 +27,11 @@ Bonsai::Bonsai(void) {
     }
 }
 
-part_t Bonsai::get_part(void) noexcept { return part; }
+part_t Bonsai::get_part(void) {
+    return part; //
+}
 
-uint32_t Bonsai::read_free_space_address(void) noexcept {
+uint32_t Bonsai::read_free_space_address(void) {
     uint32_t *p = (uint32_t *)SYSTEM_PROPERTIES_ROW_ADDRESS;
     uint8_t buffer[4];
     uint8_t *bp = buffer;
@@ -38,7 +40,7 @@ uint32_t Bonsai::read_free_space_address(void) noexcept {
     return address;
 }
 
-void Bonsai::erase(void) noexcept {
+void Bonsai::erase(void) {
     uint32_t address = SYSTEM_PROPERTIES_ROW_ADDRESS;
     while (address < BONSAI_MEMORY_END) {
         nvm.erase_row(address);
@@ -47,11 +49,11 @@ void Bonsai::erase(void) noexcept {
     update_free_space_address(ROOT_DIRECTORY_ADDRESS);
 }
 
-void Bonsai::update_free_space_address(uint32_t address) noexcept {
+void Bonsai::update_free_space_address(const uint32_t address) {
     uint32_t *p = (uint32_t *)SYSTEM_PROPERTIES_ROW_ADDRESS;
 
     uint8_t buffer[PAGE_SIZE];
-    memset(buffer, 1, PAGE_SIZE);
+    memset(buffer, 0, PAGE_SIZE);
     memcpy(buffer, p, PAGE_SIZE);
 
     buffer[0] = (address & (0xFF << 24)) >> 24;
@@ -63,7 +65,7 @@ void Bonsai::update_free_space_address(uint32_t address) noexcept {
     system.free_space_address = address;
 }
 
-void Bonsai::fputf(file_t &file) noexcept {
+void Bonsai::put(file_t &file) {
     uint32_t fsize = file.size();
     uint8_t padding = ROW_SIZE - (fsize % ROW_SIZE);
     uint32_t total_size = fsize + padding;
@@ -76,20 +78,37 @@ void Bonsai::fputf(file_t &file) noexcept {
         nvm.erase_row(system.free_space_address);
         for (uint8_t j = 0; j < 4; j++) {
             uint8_t page_buffer[PAGE_SIZE];
-            memset(page_buffer, 0, PAGE_SIZE);
             memcpy(page_buffer, buffer + buffer_index, PAGE_SIZE);
             nvm.write_page(system.free_space_address - PAGE_SIZE, page_buffer);
 
             buffer_index += PAGE_SIZE;
-            system.free_space_address + PAGE_SIZE;
             update_free_space_address(system.free_space_address + PAGE_SIZE);
         }
     }
 }
 
-file_t Bonsai::fgetf(uint32_t address) {
-    uint8_t *p = (uint8_t *)address;
+void Bonsai::put(file_t &file, uint32_t address) {
+    uint32_t saved = system.free_space_address;
+    system.free_space_address = address;
+    put(file);
+    system.free_space_address = saved;
+}
 
+void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uint32_t address) {
+    file_t file = {
+        .handle_size = (uint8_t)name.size(),
+        .data_size = 0,
+        .parent_addr = parent_address,
+        .num_child_addrs = 0,
+        .handle = (uint8_t *)name.c_str(),
+        .data = (uint8_t *)nullptr,
+        .child_addrs = nullptr,
+    };
+    put(file, address);
+}
+
+file_t Bonsai::get(const uint32_t address) {
+    uint8_t *p = (uint8_t *)address;
     uint8_t handle_size = *p++;
     uint16_t data_size = *p++ << 8 | *p++;
 
@@ -106,52 +125,69 @@ file_t Bonsai::fgetf(uint32_t address) {
     uint8_t *data_start_addr = (uint8_t *)(address + offset + handle_size);
     uint32_t *child_addrs_start_addr = (uint32_t *)(address + offset + handle_size + data_size);
 
-    file_t file = {.handle_size = handle_size,
-                   .data_size = data_size,
+    file_t file = {.handle_size = (uint8_t)handle_size,
+                   .data_size = (uint16_t)data_size,
                    .parent_addr = parent_addr,
                    .num_child_addrs = num_child_addrs,
-                   .handle = handle_start_addr,
-                   .data = data_start_addr,
-                   .child_addrs = child_addrs_start_addr};
+                   .handle = (uint8_t *)handle_start_addr,
+                   .data = (uint8_t *)data_start_addr,
+                   .child_addrs = (uint32_t *)child_addrs_start_addr};
 
     return file;
 }
 
-void Bonsai::create_file(std::string path) noexcept {
-    if (path.back() != '/') {
-        path += "/";
+void Bonsai::del(uint32_t address) {
+    auto file = get(address);
+    uint32_t fsize = file.size();
+    uint8_t padding = ROW_SIZE - (fsize % ROW_SIZE);
+    uint32_t total_size = fsize + padding;
+    for (uint8_t i = 0; i < total_size / ROW_SIZE; i++) {
+        nvm.erase_row(address);
+        address += PAGE_SIZE;
     }
-
-    uint32_t pos = 0;
-    std::string token;
-
-    uint8_t i = 0;
-    std::array<uint8_t, 16> indexes;
-
-    while ((pos = path.find("/")) != std::string::npos) {
-        indexes[i++] = pos;
-        token = path.substr(0, pos);
-        path.erase(0, pos + 1);
-    }
-    std::string fname = path.substr(0, pos);
-
-    file_t file = {.handle_size = (uint8_t)fname.length(),
-                   .data_size = 0,
-                   .parent_addr = 0,
-                   .num_child_addrs = 0,
-                   .handle = (uint8_t *)fname.c_str(),
-                   .data = nullptr,
-                   .child_addrs = nullptr};
-
-    // for (uint8_t i = 0; i < indexes.size(); i++) {
-    // debug.printf("i = %u\r\n", i);
-    // debug.printf("%u\r\n", indexes[i - 1]);
-    // debug.printf("%u\r\n", indexes[i - 2]);
-
-    // }
-
-    // for (uint8_t i = 0; i < fname.length(); i++) {
-    //     debug.printf("%u\r\n", file.handle[i]);
-    // }
-    // nvm.write(system.free_space_address, );
 }
+
+void Bonsai::mov(const uint32_t dest, const uint32_t src) {
+    auto file = get(src);
+    put(file, dest);
+    del(src);
+}
+
+// void Bonsai::create_file(std::string path) {
+//     if (path.back() != '/') {
+//         path += "/";
+//     }
+
+//     uint32_t pos = 0;
+//     std::string token;
+
+//     uint8_t i = 0;
+//     std::array<uint8_t, 16> indexes;
+
+//     while ((pos = path.find("/")) != std::string::npos) {
+//         indexes[i++] = pos;
+//         token = path.substr(0, pos);
+//         path.erase(0, pos + 1);
+//     }
+//     std::string fname = path.substr(0, pos);
+
+//     file_t file = {.handle_size = (uint8_t)fname.length(),
+//                    .data_size = 0,
+//                    .parent_addr = 0,
+//                    .num_child_addrs = 0,
+//                    .handle = (uint8_t *)fname.c_str(),
+//                    .data = nullptr,
+//                    .child_addrs = nullptr};
+
+//     // for (uint8_t i = 0; i < indexes.size(); i++) {
+//     // debug.printf("i = %u\r\n", i);
+//     // debug.printf("%u\r\n", indexes[i - 1]);
+//     // debug.printf("%u\r\n", indexes[i - 2]);
+
+//     // }
+
+//     // for (uint8_t i = 0; i < fname.length(); i++) {
+//     //     debug.printf("%u\r\n", file.handle[i]);
+//     // }
+//     // nvm.write(system.free_space_address, );
+// }
