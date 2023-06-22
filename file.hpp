@@ -45,11 +45,12 @@ typedef struct {
             }
         }
         if (num_child_addrs) {
-            for (uint16_t i = 0; i < num_child_addrs; i++) {
-                buffer[index++] = (child_addrs[i] >> 24) & mask;
-                buffer[index++] = (child_addrs[i] >> 16) & mask;
-                buffer[index++] = (child_addrs[i] >> 8) & mask;
-                buffer[index++] = child_addrs[i] & mask;
+            for (uint8_t i = 0; i < num_child_addrs; i++) {
+                uint8_t *p = (uint8_t *)(child_addrs + i);
+                buffer[index++] = p[3];
+                buffer[index++] = p[2];
+                buffer[index++] = p[1];
+                buffer[index++] = p[0];
             }
         }
         return;
