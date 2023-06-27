@@ -132,7 +132,6 @@ file_t Bonsai::get(const uint32_t address) {
                    .handle = (uint8_t *)handle_start_addr,
                    .data = (uint8_t *)data_start_addr,
                    .child_addrs = (uint32_t *)child_addrs_start_addr};
-
     return file;
 }
 
@@ -153,41 +152,50 @@ void Bonsai::mov(const uint32_t dest, const uint32_t src) {
     del(src);
 }
 
-// void Bonsai::create_file(std::string path) {
-//     if (path.back() != '/') {
-//         path += "/";
-//     }
+void Bonsai::edit_file_handle(const uint32_t address, const std::string handle) {
+    auto file = get(address);
+    file.handle = (uint8_t *)handle.c_str();
+    file.handle_size = (uint8_t)handle.size();
+    put(file, address);
+}
 
-//     uint32_t pos = 0;
-//     std::string token;
+void Bonsai::edit_file_data(const uint32_t address, const std::string data) {
+    auto file = get(address);
+    file.data = (uint8_t *)data.c_str();
+    file.data_size = (uint8_t)data.size();
+    put(file, address);
+}
 
-//     uint8_t i = 0;
-//     std::array<uint8_t, 16> indexes;
+void Bonsai::edit_file_parent_addr(const uint32_t address, const uint32_t parent_addr) {
+    auto file = get(address);
+    file.parent_addr = parent_addr;
+    put(file, address);
+}
 
-//     while ((pos = path.find("/")) != std::string::npos) {
-//         indexes[i++] = pos;
-//         token = path.substr(0, pos);
-//         path.erase(0, pos + 1);
-//     }
-//     std::string fname = path.substr(0, pos);
+void Bonsai::add_child_addr(const uint32_t address, uint32_t child_addr) {
+    auto file = get(address);
+    file.num_child_addrs++;
+    uint32_t buffer[file.num_child_addrs];
+    memcpy(buffer, file.child_addrs, (file.num_child_addrs - 1) * sizeof(uint32_t));
+    buffer[file.num_child_addrs - 1] = child_addr;
+    file.child_addrs = buffer;
+    put(file, address);
+}
 
-//     file_t file = {.handle_size = (uint8_t)fname.length(),
-//                    .data_size = 0,
-//                    .parent_addr = 0,
-//                    .num_child_addrs = 0,
-//                    .handle = (uint8_t *)fname.c_str(),
-//                    .data = nullptr,
-//                    .child_addrs = nullptr};
+void Bonsai::remove_child_addr(const uint32_t address, const uint32_t child_addr) {
+    auto file = get(address);
+    uint32_t buffer[file.num_child_addrs];
+    memcpy(buffer, file.child_addrs, file.num_child_addrs * sizeof(uint32_t));
 
-//     // for (uint8_t i = 0; i < indexes.size(); i++) {
-//     // debug.printf("i = %u\r\n", i);
-//     // debug.printf("%u\r\n", indexes[i - 1]);
-//     // debug.printf("%u\r\n", indexes[i - 2]);
-
-//     // }
-
-//     // for (uint8_t i = 0; i < fname.length(); i++) {
-//     //     debug.printf("%u\r\n", file.handle[i]);
-//     // }
-//     // nvm.write(system.free_space_address, );
-// }
+    for (uint8_t i = 0; i < file.num_child_addrs; i++) {
+        if (buffer[i] == child_addr) {
+            for (uint8_t j = i; j < file.num_child_addrs - 1; j++) {
+                buffer[j] = buffer[j + 1];
+            }
+            file.num_child_addrs--;
+            file.child_addrs = buffer;
+            put(file, address);
+            return;
+        }
+    }
+}

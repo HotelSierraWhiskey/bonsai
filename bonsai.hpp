@@ -10,12 +10,12 @@ typedef struct {
 } system_properties_row_t;
 
 class Bonsai {
-    // private:
-  public:
+  private:
     system_properties_row_t system;
     Nvmc nvm;
     part_t part;
 
+  public:
     Bonsai(void);
     part_t get_part(void);
 
@@ -41,6 +41,13 @@ class Bonsai {
 
     /* moves file data from flash address src to dest */
     void mov(const uint32_t dest, const uint32_t src);
+
+    /* basic file editing methods */
+    void edit_file_handle(const uint32_t address, const std::string handle);
+    void edit_file_data(const uint32_t address, const std::string data);
+    void edit_file_parent_addr(const uint32_t address, const uint32_t parent_addr);
+    void add_child_addr(const uint32_t address, uint32_t child_addr);
+    void remove_child_addr(const uint32_t address, const uint32_t child_addr);
 };
 
 #endif
