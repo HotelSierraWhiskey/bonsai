@@ -18,6 +18,10 @@ typedef struct {
                sizeof(num_child_addrs) +             //
                (num_child_addrs * sizeof(uint32_t)); //
     }
+    uint32_t location(void) {
+        auto loc = (uint32_t)(handle - 8);
+        return loc;
+    }
     void to_buffer(uint8_t *buffer) {
         uint8_t mask = 0xFF;
         uint32_t index = 0;
@@ -47,10 +51,10 @@ typedef struct {
         if (num_child_addrs) {
             for (uint8_t i = 0; i < num_child_addrs; i++) {
                 uint8_t *p = (uint8_t *)(child_addrs + i);
-                buffer[index++] = p[3];
-                buffer[index++] = p[2];
-                buffer[index++] = p[1];
                 buffer[index++] = p[0];
+                buffer[index++] = p[1];
+                buffer[index++] = p[2];
+                buffer[index++] = p[3];
             }
         }
         return;
