@@ -19,8 +19,7 @@ typedef struct {
                (num_child_addrs * sizeof(uint32_t)); //
     }
     uint32_t location(void) {
-        auto loc = (uint32_t)(handle - 8);
-        return loc;
+        return (uint32_t)(handle - 8); //
     }
     void to_buffer(uint8_t *buffer) {
         uint8_t mask = 0xFF;
