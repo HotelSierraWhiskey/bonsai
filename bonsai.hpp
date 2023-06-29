@@ -48,6 +48,15 @@ class Bonsai {
     void edit_file_parent_addr(const uint32_t address, const uint32_t parent_addr);
     void add_child_addr(const uint32_t address, uint32_t child_addr);
     void remove_child_addr(const uint32_t address, const uint32_t child_addr);
+
+    bool has_child(const std::string parent_name, const std::string child_name);
+    void walk(uint32_t root);
+
+    /* Top level API */
+    void create_file(std::string path);
+    void delete_file(const std::string path);
+    void move_file(const std::string dest, const std::string src);
+    void read_file(const std::string path);
 };
 
 #endif

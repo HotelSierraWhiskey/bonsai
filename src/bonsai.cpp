@@ -199,3 +199,31 @@ void Bonsai::remove_child_addr(const uint32_t address, const uint32_t child_addr
         }
     }
 }
+
+
+void Bonsai::walk(uint32_t root) {
+    auto file = get(root);
+
+    debug.printf("%s\r\n", file.handle);
+
+    if (file.handle_size == 0xFF) {
+        return;
+    }
+    for (uint8_t i = 0; i < file.num_child_addrs; i++) {
+        walk(file.child_addrs[i]);
+    }
+}
+
+
+void Bonsai::create_file(std::string path) {
+    
+
+    size_t pos = 0;
+    // std::string token;
+    while ((pos = path.find("/")) != std::string::npos) {
+        std::string token = path.substr(0, pos);
+        // std::cout << token << std::endl;
+        debug.printf("%u - %s\r\n", pos, token.c_str());
+        path.erase(0, pos + 1);
+    }
+}
