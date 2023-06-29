@@ -17,9 +17,7 @@ Its first four fields are fixed in size and make up the file header.
 The size of succeeding fields - and therefore the file in its entirety - is derived from the header.
 The last three fields vary in size and make up the body of the file structure.
 Notably, a file does not store its own address, as the address of a file is the address of its first member.
-<style>
-  .tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
-</style>
+
 <table class="tg">
 <thead>
   <tr>
