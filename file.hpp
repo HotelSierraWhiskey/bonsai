@@ -3,6 +3,8 @@
 
 #include "includes.hpp"
 
+#define MAX_HANDLE_SIZE 0xFE
+
 typedef struct {
     uint8_t handle_size;
     uint16_t data_size;
