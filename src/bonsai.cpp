@@ -9,6 +9,51 @@
 
 #define U32_FLASH_RESET_VALUE 0xFFFFFFFF
 
+using callback_t = bool (*)(uint32_t);
+
+static void display_file(file_t file) {
+    debug.printf("--- FILE ADDRESS: 0x%02X ---\r\n", (uint32_t)file.location());
+    debug.printf("handle_size: %u\r\n", file.handle_size);
+    debug.printf("data_size: %u\r\n", file.data_size);
+    debug.printf("parent_addr: %02X\r\n", file.parent_addr);
+    debug.printf("num_child_addrs: %u\r\n", file.num_child_addrs);
+
+    uint8_t handle_buffer[file.handle_size + 1];
+    memset(handle_buffer, 0, file.handle_size);
+
+    uint8_t data_buffer[file.data_size + 1];
+    memset(data_buffer, 0, file.data_size);
+
+    uint32_t child_addrs_buffer[file.num_child_addrs];
+    memset(child_addrs_buffer, 0, sizeof(uint32_t) * file.num_child_addrs);
+
+    memcpy(handle_buffer, file.handle, file.handle_size);
+    handle_buffer[file.handle_size] = '\0';
+
+    memcpy(data_buffer, file.data, file.data_size);
+    data_buffer[file.data_size] = '\0';
+
+    debug.printf("handle: %s (at address %02X)\r\n", handle_buffer, file.handle);
+    debug.printf("data: %s (at address %02X)\r\n", data_buffer, file.data);
+
+    uint8_t *p = (uint8_t *)file.child_addrs;
+    for (uint8_t i = 0; i < file.num_child_addrs; i++) {
+        uint8_t buffer[4];
+        memset(buffer, 0, 4);
+        memcpy(buffer, p, 4);
+
+        // parent addrs are stored high byte first
+
+        uint32_t addr = buffer[3] << 24 | //
+                        buffer[2] << 16 | //
+                        buffer[1] << 8 |  //
+                        buffer[0];        //
+
+        p += 4;
+        debug.printf("child_addr[%u] = %02X\r\n", i, addr);
+    }
+}
+
 Bonsai::Bonsai(void) {
     uint32_t *device_id = (uint32_t *)DSU_DID_REGISTER_BASE_ADDRESS;
     uint32_t variant = ((*device_id) & (VARIANT_MASK << VARIANT_POS)) >> VARIANT_POS;
@@ -95,6 +140,9 @@ void Bonsai::put(file_t &file, uint32_t address) {
 }
 
 void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uint32_t address) {
+    if (!address) {
+        address = system.free_space_address;
+    }
     file_t file = {
         .handle_size = (uint8_t)name.size(),
         .data_size = 0,
@@ -200,30 +248,56 @@ void Bonsai::remove_child_addr(const uint32_t address, const uint32_t child_addr
     }
 }
 
+uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
+    const uint8_t size = 100;
+    uint32_t stack[size];
+    int32_t index = -1;
 
-void Bonsai::walk(uint32_t root) {
-    auto file = get(root);
+    stack[++index] = root;
 
-    debug.printf("%s\r\n", file.handle);
+    while (index >= 0) {
+        uint32_t current_addr = stack[index--];
 
-    if (file.handle_size == 0xFF) {
-        return;
+        const auto file = get(current_addr);
+
+        char buffer[file.handle_size];
+        memcpy(buffer, file.handle, file.handle_size);
+        buffer[file.handle_size] = '\0';
+
+        if (!strcmp(handle.c_str(), buffer)) {
+            return current_addr;
+        }
+
+        if (file.num_child_addrs) {
+            for (uint8_t i = 0; i < file.num_child_addrs; i++) {
+                auto addr = file.child_addrs[i];
+                stack[++index] = addr;
+            }
+        }
     }
-    for (uint8_t i = 0; i < file.num_child_addrs; i++) {
-        walk(file.child_addrs[i]);
-    }
+    return 0xFFFFFFFF;
 }
 
-
 void Bonsai::create_file(std::string path) {
-    
+    if (path.back() != '/') {
+        path += '/';
+    }
 
     size_t pos = 0;
-    // std::string token;
+    uint32_t parent_addr = 0x1b400;
+    uint32_t current_addr = 0x1b400;
+    std::string handle;
+
     while ((pos = path.find("/")) != std::string::npos) {
-        std::string token = path.substr(0, pos);
-        // std::cout << token << std::endl;
-        debug.printf("%u - %s\r\n", pos, token.c_str());
+        handle = path.substr(0, pos);
+
+        const auto addr = find(current_addr, handle);
+
+        parent_addr = current_addr;
+        current_addr = addr;
+
         path.erase(0, pos + 1);
     }
+    system.free_space_address = 0x1c000;
+    put_blank_file(handle, system.free_space_address, parent_addr);
 }

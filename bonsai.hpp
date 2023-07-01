@@ -11,11 +11,11 @@ typedef struct {
 
 class Bonsai {
   private:
-    system_properties_row_t system;
     Nvmc nvm;
     part_t part;
 
   public:
+    system_properties_row_t system;
     Bonsai(void);
     part_t get_part(void);
 
@@ -31,7 +31,7 @@ class Bonsai {
     /* writes a file to flash (updates FSA) */
     void put(file_t &file);
     void put(file_t &file, uint32_t address);
-    void put_blank_file(const std::string name, uint32_t parent_address, uint32_t address);
+    void put_blank_file(const std::string name, uint32_t parent_address, uint32_t address = 0x00);
 
     /* returns file_t from address */
     file_t get(const uint32_t address);
@@ -50,7 +50,7 @@ class Bonsai {
     void remove_child_addr(const uint32_t address, const uint32_t child_addr);
 
     bool has_child(const std::string parent_name, const std::string child_name);
-    void walk(uint32_t root);
+    uint32_t find(const uint32_t root, const std::string handle);
 
     /* Top level API */
     void create_file(std::string path);
