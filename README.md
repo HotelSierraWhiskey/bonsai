@@ -68,6 +68,10 @@ sizeof(num_child_addrs) +             // one byte for storing the number of chil
 (num_child_addrs * sizeof(uint32_t)); // four bytes for every child address
 ```
 
+## The System File and Free Space Address (FSA)
+The System File is a special file that resides in flash one row before the root directory address. It has neither parent nor children addresses and is used for general memory management. Crucially, the System File stores the Free Space Address (FSA) which itself is used to determine the location of the next file to be written. This mechanism works such that when a file is written the FSA is incremented to the row address immediately following the end of the written file. Conversely, when a file is deleted the FSA is decremented to the row address at which the deleted file was located. It is therefore the case that the maximum size of a memory fragment is `ROW_SIZE - 1` or 255 bytes. 
+
+
 ## Low Level API
 The `Bonsai` class implements a set of methods for basic file reading and writing. 
 These methods are not involved with file path traversal. Rather, they interact directly with addresses and are generally called by the top-level API.
