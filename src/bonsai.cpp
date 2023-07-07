@@ -98,6 +98,9 @@ uint32_t Bonsai::read_fsa(void) {
 }
 
 void Bonsai::write_fsa(uint32_t address) {
+    if (!address) {
+        address = fsa;
+    }
     std::string handle = "system_file";
     std::array<uint8_t, 4> fsa_bytes;
     fsa_bytes[0] = (uint8_t)((address >> 24) & 0xFF);
@@ -145,10 +148,8 @@ void Bonsai::put(file_t &file) {
 }
 
 void Bonsai::put(file_t &file, uint32_t address) {
-    uint32_t saved = fsa;
     fsa = address;
     put(file);
-    fsa = saved;
 }
 
 void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uint32_t address) {
@@ -196,6 +197,7 @@ file_t Bonsai::get(const uint32_t address) {
 }
 
 void Bonsai::del(uint32_t address) {
+    fsa = address;
     auto file = get(address);
     uint32_t fsize = file.size();
     uint8_t padding = ROW_SIZE - (fsize % ROW_SIZE);

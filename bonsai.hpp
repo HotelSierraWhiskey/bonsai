@@ -26,7 +26,7 @@ class Bonsai {
     uint32_t read_fsa(void);
 
     /* writes new FSA to flash (calls put)*/
-    void write_fsa(uint32_t address);
+    void write_fsa(uint32_t address = 0x00);
 
     /* updates fsa member */
     uint32_t update_fsa(uint32_t address, uint32_t increment);
