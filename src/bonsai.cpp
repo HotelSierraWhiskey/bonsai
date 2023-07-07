@@ -69,8 +69,13 @@ Bonsai::Bonsai(void) {
     fsa = system_file_data->fsa();
 
     if (fsa == U32_FLASH_RESET_VALUE) {
-        write_fsa(ROOT_DIRECTORY_ADDRESS);
+        init();
     }
+}
+
+void Bonsai::init(void) {
+    write_fsa(ROOT_DIRECTORY_ADDRESS + ROW_SIZE);
+    put_blank_file("root", 0x00, ROOT_DIRECTORY_ADDRESS);
 }
 
 part_t Bonsai::get_part(void) {
@@ -305,18 +310,24 @@ void Bonsai::create_file(std::string path) {
         handle = path.substr(0, pos);
 
         const auto addr = find(current_parent_addr, handle);
+        auto current = fsa;
 
-        if (addr == 0xFFFFFFFF) {
-            auto current = fsa;
-            put_blank_file(handle, current_parent_addr, current);
-            edit_file_parent_addr(current, current_parent_addr);
+        if (addr == U32_FLASH_RESET_VALUE) { // if handle is not a child of current parent addr then it doesn't exist
+            // put_blank_file(handle, current_parent_addr, current);
+            // write_fsa();
+            // edit_file_parent_addr(current, current_parent_addr);
         }
 
-        prev_parent_addr = current_parent_addr;
-        current_parent_addr = addr;
+        // add_child_addr(prev_parent_addr, current);
+        // prev_parent_addr = current_parent_addr;
+        // current_parent_addr = addr;
+
+        debug.printf("%s\r\n", handle.c_str());
 
         path.erase(0, pos + 1);
     }
-    // system.free_space_address = 0x1c000;
-    // put_blank_file(handle, system.free_space_address, prev_parent_addr);
+    debug.printf("%s\r\n", handle.c_str());
+
+    // put_blank_file(handle, fsa, current_parent_addr);
+    // write_fsa();
 }

@@ -16,6 +16,9 @@ class Bonsai {
     Bonsai(void);
     part_t get_part(void);
 
+    /* creates root dir, sets fsa */
+    void init(void);
+
     /* retrieves System File data */
     system_file_data_t *get_sfd(void);
 
