@@ -1,5 +1,6 @@
 #include "bonsai/bonsai.hpp"
 #include "bonsai/file.hpp"
+#include "bonsai/system_file.hpp"
 #include "globals.hpp"
 
 #define DSU_DID_REGISTER_BASE_ADDRESS (0x41002000 + 0x18)
@@ -8,8 +9,6 @@
 #define DEVSEL_MASK 0xFF
 
 #define U32_FLASH_RESET_VALUE 0xFFFFFFFF
-
-using callback_t = bool (*)(uint32_t);
 
 static void display_file(file_t file) {
     debug.printf("--- FILE ADDRESS: 0x%02X ---\r\n", (uint32_t)file.location());
@@ -66,9 +65,11 @@ Bonsai::Bonsai(void) {
         }
     }
 
-    system.free_space_address = read_free_space_address();
-    if (system.free_space_address == U32_FLASH_RESET_VALUE) {
-        update_free_space_address(ROOT_DIRECTORY_ADDRESS);
+    auto system_file_data = get_sfd();
+    fsa = system_file_data->fsa();
+
+    if (fsa == U32_FLASH_RESET_VALUE) {
+        write_fsa(ROOT_DIRECTORY_ADDRESS);
     }
 }
 
@@ -76,38 +77,49 @@ part_t Bonsai::get_part(void) {
     return part; //
 }
 
-uint32_t Bonsai::read_free_space_address(void) {
-    uint32_t *p = (uint32_t *)SYSTEM_PROPERTIES_ROW_ADDRESS;
-    uint8_t buffer[4];
-    uint8_t *bp = buffer;
-    memcpy(buffer, p, 4);
-    uint32_t address = bp[0] << 24 | bp[1] << 16 | bp[2] << 8 | bp[3];
-    return address;
-}
-
 void Bonsai::erase(void) {
-    uint32_t address = SYSTEM_PROPERTIES_ROW_ADDRESS;
+    uint32_t address = SYSTEM_FILE_ADDRESS;
     while (address < BONSAI_MEMORY_END) {
         nvm.erase_row(address);
         address += ROW_SIZE;
     }
-    update_free_space_address(ROOT_DIRECTORY_ADDRESS);
+    write_fsa(ROOT_DIRECTORY_ADDRESS);
 }
 
-void Bonsai::update_free_space_address(const uint32_t address) {
-    uint32_t *p = (uint32_t *)SYSTEM_PROPERTIES_ROW_ADDRESS;
+system_file_data_t *Bonsai::get_sfd(void) {
+    auto file = get(SYSTEM_FILE_ADDRESS);
+    return (system_file_data_t *)file.data;
+}
 
-    uint8_t buffer[PAGE_SIZE];
-    memset(buffer, 0, PAGE_SIZE);
-    memcpy(buffer, p, PAGE_SIZE);
+uint32_t Bonsai::read_fsa(void) {
+    auto file = get(SYSTEM_FILE_ADDRESS);
+    auto system_file_data = (system_file_data_t *)file.data;
+    return system_file_data->fsa();
+}
 
-    buffer[0] = (address & (0xFF << 24)) >> 24;
-    buffer[1] = (address & (0xFF << 16)) >> 16;
-    buffer[2] = (address & (0xFF << 8)) >> 8;
-    buffer[3] = (address & (0xFF));
+void Bonsai::write_fsa(uint32_t address) {
+    std::string handle = "system_file";
+    std::array<uint8_t, 4> fsa_bytes;
+    fsa_bytes[0] = (uint8_t)((address >> 24) & 0xFF);
+    fsa_bytes[1] = (uint8_t)((address >> 16) & 0xFF);
+    fsa_bytes[2] = (uint8_t)((address >> 8) & 0xFF);
+    fsa_bytes[3] = (uint8_t)((address)&0xFF);
 
-    nvm.write_page(SYSTEM_PROPERTIES_ROW_ADDRESS - PAGE_SIZE, buffer);
-    system.free_space_address = address;
+    file_t file = {
+        .handle_size = (uint8_t)handle.size(),
+        .data_size = (uint16_t)fsa_bytes.size(),
+        .parent_addr = 0x00,
+        .num_child_addrs = 0,
+        .handle = (uint8_t *)handle.c_str(),
+        .data = (uint8_t *)fsa_bytes.data(),
+        .child_addrs = nullptr,
+    };
+    memcpy(file.data, fsa_bytes.data(), 4);
+    put(file, SYSTEM_FILE_ADDRESS);
+}
+
+uint32_t Bonsai::update_fsa(uint32_t address, uint32_t increment) {
+    return address + increment; //
 }
 
 void Bonsai::put(file_t &file) {
@@ -120,28 +132,28 @@ void Bonsai::put(file_t &file) {
 
     uint32_t buffer_index = 0;
     for (uint8_t i = 0; i < total_size / ROW_SIZE; i++) {
-        nvm.erase_row(system.free_space_address);
+        nvm.erase_row(fsa);
         for (uint8_t j = 0; j < 4; j++) {
             uint8_t page_buffer[PAGE_SIZE];
             memcpy(page_buffer, buffer + buffer_index, PAGE_SIZE);
-            nvm.write_page(system.free_space_address - PAGE_SIZE, page_buffer);
+            nvm.write_page(fsa - PAGE_SIZE, page_buffer);
 
             buffer_index += PAGE_SIZE;
-            update_free_space_address(system.free_space_address + PAGE_SIZE);
+            fsa = update_fsa(fsa, PAGE_SIZE);
         }
     }
 }
 
 void Bonsai::put(file_t &file, uint32_t address) {
-    uint32_t saved = system.free_space_address;
-    system.free_space_address = address;
+    uint32_t saved = fsa;
+    fsa = address;
     put(file);
-    system.free_space_address = saved;
+    fsa = saved;
 }
 
 void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uint32_t address) {
     if (!address) {
-        address = system.free_space_address;
+        address = fsa;
     }
     file_t file = {
         .handle_size = (uint8_t)name.size(),
@@ -267,7 +279,6 @@ uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
         if (!strcmp(handle.c_str(), buffer)) {
             return current_addr;
         }
-
         if (file.num_child_addrs) {
             for (uint8_t i = 0; i < file.num_child_addrs; i++) {
                 auto addr = file.child_addrs[i];
@@ -284,20 +295,26 @@ void Bonsai::create_file(std::string path) {
     }
 
     size_t pos = 0;
-    uint32_t parent_addr = 0x1b400;
-    uint32_t current_addr = 0x1b400;
+    uint32_t current_parent_addr = ROOT_DIRECTORY_ADDRESS;
+    uint32_t prev_parent_addr = current_parent_addr;
     std::string handle;
 
     while ((pos = path.find("/")) != std::string::npos) {
         handle = path.substr(0, pos);
 
-        const auto addr = find(current_addr, handle);
+        const auto addr = find(current_parent_addr, handle);
 
-        parent_addr = current_addr;
-        current_addr = addr;
+        if (addr == 0xFFFFFFFF) {
+            auto current = fsa;
+            put_blank_file(handle, current_parent_addr, current);
+            edit_file_parent_addr(current, current_parent_addr);
+        }
+
+        prev_parent_addr = current_parent_addr;
+        current_parent_addr = addr;
 
         path.erase(0, pos + 1);
     }
-    system.free_space_address = 0x1c000;
-    put_blank_file(handle, system.free_space_address, parent_addr);
+    // system.free_space_address = 0x1c000;
+    // put_blank_file(handle, system.free_space_address, prev_parent_addr);
 }

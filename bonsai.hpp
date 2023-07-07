@@ -4,10 +4,7 @@
 #include "file.hpp"
 #include "internal.hpp"
 #include "nvmctrl.hpp"
-
-typedef struct {
-    uint32_t free_space_address;
-} system_properties_row_t;
+#include "system_file.hpp"
 
 class Bonsai {
   private:
@@ -15,23 +12,30 @@ class Bonsai {
     part_t part;
 
   public:
-    system_properties_row_t system;
+    uint32_t fsa;
     Bonsai(void);
     part_t get_part(void);
+
+    /* retrieves System File data */
+    system_file_data_t *get_sfd(void);
 
     /* erases entire Bonsai flash partition */
     void erase(void);
 
     /* reads FSA from flash */
-    uint32_t read_free_space_address(void);
+    uint32_t read_fsa(void);
 
-    /* writes new FSA to flash */
-    void update_free_space_address(const uint32_t address);
+    /* writes new FSA to flash (calls put)*/
+    void write_fsa(uint32_t address);
+
+    /* updates fsa member */
+    uint32_t update_fsa(uint32_t address, uint32_t increment);
 
     /* writes a file to flash (updates FSA) */
     void put(file_t &file);
     void put(file_t &file, uint32_t address);
-    void put_blank_file(const std::string name, uint32_t parent_address, uint32_t address = 0x00);
+    void put_blank_file(const std::string name, uint32_t parent_address = ROOT_DIRECTORY_ADDRESS,
+                        uint32_t address = 0x00);
 
     /* returns file_t from address */
     file_t get(const uint32_t address);
@@ -49,7 +53,6 @@ class Bonsai {
     void add_child_addr(const uint32_t address, uint32_t child_addr);
     void remove_child_addr(const uint32_t address, const uint32_t child_addr);
 
-    bool has_child(const std::string parent_name, const std::string child_name);
     uint32_t find(const uint32_t root, const std::string handle);
 
     /* Top level API */
