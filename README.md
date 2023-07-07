@@ -2,7 +2,7 @@
 ### A tiny, persistent file manager for ARM-based embedded systems.
 
 <p align="center">
-  <img src="docs/images/logo.jpg" />
+  <img src="docs/images/logo.png" />
 </p>
 
 
