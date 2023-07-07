@@ -1,6 +1,7 @@
 # Bonsai
 ### A tiny, persistent file manager for ARM-based embedded systems.
 
+![logo](docs/images/logo.jpg)
 
 ## Features
 - Persistent directory structure with nested file creation.
