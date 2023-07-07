@@ -1,6 +1,10 @@
 # Bonsai
 ### A tiny, persistent file manager for ARM-based embedded systems.
 
+![license](https://img.shields.io/badge/license-MIT-green)
+![license](https://img.shields.io/badge/version-0.1-yellow)
+
+
 <p align="center">
   <img src="docs/images/logo.png" />
 </p>
