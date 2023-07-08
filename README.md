@@ -2,7 +2,7 @@
 ### A tiny, persistent file manager for ARM-based embedded systems.
 
 ![license](https://img.shields.io/badge/license-MIT-green)
-![license](https://img.shields.io/badge/version-0.1-yellow)
+![license](https://img.shields.io/badge/version-alpha-yellow)
 
 
 <p align="center">
@@ -15,6 +15,16 @@
 - Supports all ATSAMC2x/ ATSAMD2x microcontrollers.
 - Minimal configuration - automatic device identification.
 - Built-in nonvolatile memory peripheral driver.
+
+## Example
+
+```c++
+Bonsai bonsai;
+bonsai.create_file("root/config/networking");
+```
+
+## Contribute
+Check out [how to contribute](docs/CONTRIBUTING.md) in the docs directory.
 
 ## File Structure
 Once written, a file resides contiguously at a row boundary in flash memory. A file may span multiple rows provided that it adheres to the size limits of its constituent fields, and that it fits within the Bonsai flash partition. Its first four fields are fixed in size and make up the file header.
