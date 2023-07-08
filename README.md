@@ -24,7 +24,7 @@ bonsai.create_file("root/config/networking");
 ```
 
 ## Contribute
-Check out [how to contribute](docs/CONTRIBUTING.md) in the docs directory.
+Check out [how to contribute](docs/CONTRIBUTING.md).
 
 ## File Structure
 Once written, a file resides contiguously at a row boundary in flash memory. A file may span multiple rows provided that it adheres to the size limits of its constituent fields, and that it fits within the Bonsai flash partition. Its first four fields are fixed in size and make up the file header.
