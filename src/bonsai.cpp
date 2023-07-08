@@ -1,57 +1,12 @@
 #include "bonsai/bonsai.hpp"
 #include "bonsai/file.hpp"
 #include "bonsai/system_file.hpp"
-#include "globals.hpp"
 
 #define DSU_DID_REGISTER_BASE_ADDRESS (0x41002000 + 0x18)
 #define VARIANT_MASK 0xFFFFF
 #define VARIANT_POS 0x0C
 #define DEVSEL_MASK 0xFF
-
 #define U32_FLASH_RESET_VALUE 0xFFFFFFFF
-
-static void display_file(file_t file) {
-    debug.printf("--- FILE ADDRESS: 0x%02X ---\r\n", (uint32_t)file.location());
-    debug.printf("handle_size: %u\r\n", file.handle_size);
-    debug.printf("data_size: %u\r\n", file.data_size);
-    debug.printf("parent_addr: %02X\r\n", file.parent_addr);
-    debug.printf("num_child_addrs: %u\r\n", file.num_child_addrs);
-
-    uint8_t handle_buffer[file.handle_size + 1];
-    memset(handle_buffer, 0, file.handle_size);
-
-    uint8_t data_buffer[file.data_size + 1];
-    memset(data_buffer, 0, file.data_size);
-
-    uint32_t child_addrs_buffer[file.num_child_addrs];
-    memset(child_addrs_buffer, 0, sizeof(uint32_t) * file.num_child_addrs);
-
-    memcpy(handle_buffer, file.handle, file.handle_size);
-    handle_buffer[file.handle_size] = '\0';
-
-    memcpy(data_buffer, file.data, file.data_size);
-    data_buffer[file.data_size] = '\0';
-
-    debug.printf("handle: %s (at address %02X)\r\n", handle_buffer, file.handle);
-    debug.printf("data: %s (at address %02X)\r\n", data_buffer, file.data);
-
-    uint8_t *p = (uint8_t *)file.child_addrs;
-    for (uint8_t i = 0; i < file.num_child_addrs; i++) {
-        uint8_t buffer[4];
-        memset(buffer, 0, 4);
-        memcpy(buffer, p, 4);
-
-        // parent addrs are stored high byte first
-
-        uint32_t addr = buffer[3] << 24 | //
-                        buffer[2] << 16 | //
-                        buffer[1] << 8 |  //
-                        buffer[0];        //
-
-        p += 4;
-        debug.printf("child_addr[%u] = %02X\r\n", i, addr);
-    }
-}
 
 Bonsai::Bonsai(void) {
     uint32_t *device_id = (uint32_t *)DSU_DID_REGISTER_BASE_ADDRESS;
@@ -293,7 +248,7 @@ uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
             }
         }
     }
-    return 0xFFFFFFFF;
+    return U32_FLASH_RESET_VALUE;
 }
 
 void Bonsai::create_file(std::string path) {
@@ -313,21 +268,21 @@ void Bonsai::create_file(std::string path) {
         auto current = fsa;
 
         if (addr == U32_FLASH_RESET_VALUE) { // if handle is not a child of current parent addr then it doesn't exist
-            // put_blank_file(handle, current_parent_addr, current);
-            // write_fsa();
-            // edit_file_parent_addr(current, current_parent_addr);
+            put_blank_file(handle, current_parent_addr, current);
+            write_fsa();
+            edit_file_parent_addr(current, current_parent_addr);
         }
 
-        // add_child_addr(prev_parent_addr, current);
-        // prev_parent_addr = current_parent_addr;
-        // current_parent_addr = addr;
+        add_child_addr(prev_parent_addr, current);
+        prev_parent_addr = current_parent_addr;
+        current_parent_addr = addr;
 
-        debug.printf("%s\r\n", handle.c_str());
+        // debug.printf("%s\r\n", handle.c_str());
 
         path.erase(0, pos + 1);
     }
-    debug.printf("%s\r\n", handle.c_str());
+    // debug.printf("%s\r\n", handle.c_str());
 
-    // put_blank_file(handle, fsa, current_parent_addr);
-    // write_fsa();
+    put_blank_file(handle, fsa, current_parent_addr);
+    write_fsa();
 }
