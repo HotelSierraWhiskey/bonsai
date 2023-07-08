@@ -1,7 +1,7 @@
 ## Contributing
 
 ### Preamble
-I'm going to eventually integrate an easy way for contributers to compile and upload Bonsai firmware for themselves. For the time being, you can clone the repo, make your changes, and run `make compile` just to be sure your changes are okay. I compile the firmware with arm-none-eabi-g++ but it will also compile with g++ just fine.
+I'm going to eventually integrate an easy way for contributers to compile and upload Bonsai firmware for themselves. For the time being, you can fork the repo, make your changes in a new branch, and run `make compile` just to be sure your changes are okay. Then submit a PR. I compile the firmware with arm-none-eabi-g++ but it will also compile with g++ just fine.
 
 ### Ways to Contribute
 - Unit tests are always welcome. To write a unit test, create a directory with the name of your test in bonsai/tests. Write your test there. Check out the unit test example there already and use it as a template.
