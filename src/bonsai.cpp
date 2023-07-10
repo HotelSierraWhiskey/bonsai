@@ -257,32 +257,35 @@ void Bonsai::create_file(std::string path) {
     }
 
     size_t pos = 0;
-    uint32_t current_parent_addr = ROOT_DIRECTORY_ADDRESS;
-    uint32_t prev_parent_addr = current_parent_addr;
+    uint32_t current_addr = ROOT_DIRECTORY_ADDRESS;
+    uint32_t prev_addr = current_addr;
     std::string handle;
 
     while ((pos = path.find("/")) != std::string::npos) {
         handle = path.substr(0, pos);
 
-        const auto addr = find(current_parent_addr, handle);
-        auto current = fsa;
+        const auto found_addr = find(current_addr, handle);
+        // debug.printf("%s: %X\r\n", handle.c_str(), found_addr);
 
-        if (addr == U32_FLASH_RESET_VALUE) { // if handle is not a child of current parent addr then it doesn't exist
-            put_blank_file(handle, current_parent_addr, current);
+        if (found_addr != U32_FLASH_RESET_VALUE) {
+            edit_file_parent_addr(found_addr, prev_addr);
+            if (found_addr != ROOT_DIRECTORY_ADDRESS) {
+                add_child_addr(prev_addr, current_addr);
+            }
+            path.erase(0, pos + 1);
+            continue;
+
+        } else {
+            auto current = fsa;
+            put_blank_file(handle, current_addr, current);
             write_fsa();
-            edit_file_parent_addr(current, current_parent_addr);
+            edit_file_parent_addr(current, prev_addr);
         }
 
-        add_child_addr(prev_parent_addr, current);
-        prev_parent_addr = current_parent_addr;
-        current_parent_addr = addr;
-
-        // debug.printf("%s\r\n", handle.c_str());
+        prev_addr = current_addr;
+        current_addr = found_addr;
 
         path.erase(0, pos + 1);
     }
     // debug.printf("%s\r\n", handle.c_str());
-
-    put_blank_file(handle, fsa, current_parent_addr);
-    write_fsa();
 }
