@@ -196,6 +196,26 @@ void Bonsai::edit_file_parent_addr(const uint32_t address, const uint32_t parent
 
 void Bonsai::add_child_addr(const uint32_t address, uint32_t child_addr) {
     auto file = get(address);
+
+    // Return early if this file already has this child
+    if (file.num_child_addrs) {
+        for (uint8_t i = 0; i < file.num_child_addrs; i++) {
+            uint8_t *p = (uint8_t *)file.child_addrs;
+            uint8_t buffer[4];
+            memset(buffer, 0, 4);
+            memcpy(buffer, p, 4);
+            uint32_t child = buffer[3] << 24 | //
+                             buffer[2] << 16 | //
+                             buffer[1] << 8 |  //
+                             buffer[0];        //
+
+            if (child = child_addr) {
+                return;
+            }
+            p += 4;
+        }
+    }
+
     file.num_child_addrs++;
     uint32_t buffer[file.num_child_addrs];
     memcpy(buffer, file.child_addrs, (file.num_child_addrs - 1) * sizeof(uint32_t));
