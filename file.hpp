@@ -49,6 +49,7 @@ typedef struct {
                 buffer[index++] = data[i];
             }
         }
+        // TODO: byte order reversal (MSB first)
         if (num_child_addrs) {
             for (uint8_t i = 0; i < num_child_addrs; i++) {
                 uint8_t *p = (uint8_t *)(child_addrs + i);
