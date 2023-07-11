@@ -4,5 +4,6 @@
 #include <array>
 #include <cstring>
 #include <string>
+#include "utils.hpp"
 
 #endif
