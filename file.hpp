@@ -29,13 +29,13 @@ typedef struct {
 
         buffer[index++] = handle_size;
 
-        buffer[index++] = (data_size >> 8) & mask;
         buffer[index++] = data_size & mask;
+        buffer[index++] = (data_size >> 8) & mask;
 
-        buffer[index++] = (parent_addr >> 24) & mask;
-        buffer[index++] = (parent_addr >> 16) & mask;
-        buffer[index++] = (parent_addr >> 8) & mask;
         buffer[index++] = parent_addr & mask;
+        buffer[index++] = (parent_addr >> 8) & mask;
+        buffer[index++] = (parent_addr >> 16) & mask;
+        buffer[index++] = (parent_addr >> 24) & mask;
 
         buffer[index++] = num_child_addrs;
 
@@ -49,7 +49,6 @@ typedef struct {
                 buffer[index++] = data[i];
             }
         }
-        // TODO: byte order reversal (MSB first)
         if (num_child_addrs) {
             for (uint8_t i = 0; i < num_child_addrs; i++) {
                 uint8_t *p = (uint8_t *)(child_addrs + i);
