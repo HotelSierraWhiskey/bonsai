@@ -30,7 +30,7 @@ Bonsai::Bonsai(void) {
 
 void Bonsai::init(void) {
     write_fsa(ROOT_DIRECTORY_ADDRESS + ROW_SIZE);
-    put_blank_file("root", 0x00, ROOT_DIRECTORY_ADDRESS);
+    put_blank_file("root", ROOT_DIRECTORY_ADDRESS, ROOT_DIRECTORY_ADDRESS);
 }
 
 part_t Bonsai::get_part(void) {
@@ -63,10 +63,10 @@ void Bonsai::write_fsa(uint32_t address) {
     }
     std::string handle = "system_file";
     std::array<uint8_t, 4> fsa_bytes;
-    fsa_bytes[0] = (uint8_t)((address >> 24) & 0xFF);
-    fsa_bytes[1] = (uint8_t)((address >> 16) & 0xFF);
-    fsa_bytes[2] = (uint8_t)((address >> 8) & 0xFF);
-    fsa_bytes[3] = (uint8_t)((address)&0xFF);
+    fsa_bytes[0] = (uint8_t)(address & 0xFF);
+    fsa_bytes[1] = (uint8_t)((address >> 8) & 0xFF);
+    fsa_bytes[2] = (uint8_t)((address >> 16) & 0xFF);
+    fsa_bytes[3] = (uint8_t)((address >> 24) & 0xFF);
 
     file_t file = {
         .handle_size = (uint8_t)handle.size(),
@@ -152,7 +152,7 @@ file_t Bonsai::get(const uint32_t address) {
                    .num_child_addrs = num_child_addrs,
                    .handle = (uint8_t *)handle_start_addr,
                    .data = (uint8_t *)data_start_addr,
-                   .child_addrs = (uint32_t *)child_addrs_start_addr};
+                   .child_addrs = (uint32_t *)child_addrs_start_addr}; // was child_addrs_start_addr
     return file;
 }
 
@@ -200,16 +200,9 @@ void Bonsai::add_child_addr(const uint32_t address, uint32_t child_addr) {
     // Return early if this file already has this child
     if (file.num_child_addrs) {
         for (uint8_t i = 0; i < file.num_child_addrs; i++) {
-            uint8_t *p = (uint8_t *)file.child_addrs;
-            uint8_t buffer[4];
-            memset(buffer, 0, 4);
-            memcpy(buffer, p, 4);
-            uint32_t child = buffer[3] << 24 | //
-                             buffer[2] << 16 | //
-                             buffer[1] << 8 |  //
-                             buffer[0];        //
-
-            if (child = child_addr) {
+            uint8_t *p = (uint8_t *)(file.child_addrs + i);
+            auto check = bytes_to_u32(p);
+            if (check == child_addr) {
                 return;
             }
             p += 4;
@@ -242,6 +235,7 @@ void Bonsai::remove_child_addr(const uint32_t address, const uint32_t child_addr
     }
 }
 
+// #include "globals.hpp"
 uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
     const uint8_t size = 100;
     uint32_t stack[size];
@@ -263,7 +257,7 @@ uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
         }
         if (file.num_child_addrs) {
             for (uint8_t i = 0; i < file.num_child_addrs; i++) {
-                auto addr = file.child_addrs[i];
+                auto addr = reverse_addr(file.child_addrs[i]); // added
                 stack[++index] = addr;
             }
         }
@@ -284,22 +278,25 @@ void Bonsai::create_file(std::string path) {
     while ((pos = path.find("/")) != std::string::npos) {
         handle = path.substr(0, pos);
 
+        // debug.printf("TOP OF WHILE. (handling %s)\r\n", handle.c_str());
+
         const auto found_addr = find(current_addr, handle);
-        // debug.printf("%s: %X\r\n", handle.c_str(), found_addr);
+        // debug.printf("found addr: %X\r\n", found_addr);
 
-        if (found_addr != U32_FLASH_RESET_VALUE) {
-            edit_file_parent_addr(found_addr, prev_addr);
-            if (found_addr != ROOT_DIRECTORY_ADDRESS) {
-                add_child_addr(prev_addr, current_addr);
-            }
-            path.erase(0, pos + 1);
-            continue;
-
-        } else {
-            auto current = fsa;
-            put_blank_file(handle, current_addr, current);
+        const auto saved = fsa;
+        
+        if (found_addr == U32_FLASH_RESET_VALUE) {
+            // debug.printf("new file to add at fsa. adding...\r\n");
+            put_blank_file(handle.c_str(), current_addr, saved);
+            debug.printf("writing fsa...\r\n");
             write_fsa();
-            edit_file_parent_addr(current, prev_addr);
+            // debug.printf("adding child to prev file...\r\n");
+            add_child_addr(prev_addr, current_addr);
+        }
+
+        if (found_addr != ROOT_DIRECTORY_ADDRESS) {
+            // debug.printf("not root dir adding parent...\r\n");
+            edit_file_parent_addr(saved, prev_addr);
         }
 
         prev_addr = current_addr;
