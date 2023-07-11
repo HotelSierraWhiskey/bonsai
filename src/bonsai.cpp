@@ -152,7 +152,7 @@ file_t Bonsai::get(const uint32_t address) {
                    .num_child_addrs = num_child_addrs,
                    .handle = (uint8_t *)handle_start_addr,
                    .data = (uint8_t *)data_start_addr,
-                   .child_addrs = (uint32_t *)child_addrs_start_addr}; // was child_addrs_start_addr
+                   .child_addrs = (uint32_t *)child_addrs_start_addr};
     return file;
 }
 
@@ -288,7 +288,7 @@ void Bonsai::create_file(std::string path) {
         if (found_addr == U32_FLASH_RESET_VALUE) {
             // debug.printf("new file to add at fsa. adding...\r\n");
             put_blank_file(handle.c_str(), current_addr, saved);
-            debug.printf("writing fsa...\r\n");
+            // debug.printf("writing fsa...\r\n");
             write_fsa();
             // debug.printf("adding child to prev file...\r\n");
             add_child_addr(prev_addr, current_addr);
