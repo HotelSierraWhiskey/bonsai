@@ -291,7 +291,7 @@ void Bonsai::create_file(std::string path) {
             // debug.printf("writing fsa...\r\n");
             write_fsa();
             // debug.printf("adding child to prev file...\r\n");
-            add_child_addr(prev_addr, current_addr);
+            add_child_addr(prev_addr, saved);
         }
 
         if (found_addr != ROOT_DIRECTORY_ADDRESS) {
