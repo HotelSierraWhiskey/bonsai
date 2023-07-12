@@ -22,5 +22,3 @@ extern void add_child_addr_test(void) {
     bonsai.add_child_addr(0x1b200, 0x1b500);
     bonsai.add_child_addr(0x1b200, 0x1b500);
 }
-
-

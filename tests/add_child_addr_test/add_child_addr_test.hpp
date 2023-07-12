@@ -3,8 +3,6 @@
 
 #include "bonsai/tests/test.hpp"
 
-
 extern void add_child_addr_test(void);
-
 
 #endif
