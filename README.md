@@ -16,11 +16,22 @@
 - Minimal configuration - automatic device identification.
 - Built-in nonvolatile memory peripheral driver.
 
-## Example
+## Examples
 
+### Create a file.
+In this example a file called networking is created in root/config.
+If config doesn't exist, Bonsai will create it and place networking inside of it.
+The root directory is created by default when a `Bonsai` instance is instantiated.
 ```c++
 Bonsai bonsai;
 bonsai.create_file("root/config/networking");
+```
+
+### Delete a file
+The file old_data is deleted, along with its contents.
+```c++
+Bonsai bonsai;
+bonsai.delete_file("root/config/old_data");
 ```
 
 ## Contribute
