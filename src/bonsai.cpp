@@ -119,7 +119,7 @@ void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uin
     file_t file = {
         .handle_size = (uint8_t)name.size(),
         .data_size = 0,
-        .parent_addr = parent_address,
+        .parent_addr = reverse_addr(parent_address),
         .num_child_addrs = 0,
         .handle = (uint8_t *)name.c_str(),
         .data = (uint8_t *)nullptr,
@@ -235,7 +235,6 @@ void Bonsai::remove_child_addr(const uint32_t address, const uint32_t child_addr
     }
 }
 
-// #include "globals.hpp"
 uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
     const uint8_t size = 100;
     uint32_t stack[size];
@@ -257,7 +256,7 @@ uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
         }
         if (file.num_child_addrs) {
             for (uint8_t i = 0; i < file.num_child_addrs; i++) {
-                auto addr = reverse_addr(file.child_addrs[i]); // added
+                auto addr = file.child_addrs[i];
                 stack[++index] = addr;
             }
         }
@@ -284,7 +283,7 @@ void Bonsai::create_file(std::string path) {
         // debug.printf("found addr: %X\r\n", found_addr);
 
         const auto saved = fsa;
-        
+
         if (found_addr == U32_FLASH_RESET_VALUE) {
             // debug.printf("new file to add at fsa. adding...\r\n");
             put_blank_file(handle.c_str(), current_addr, saved);
@@ -304,5 +303,29 @@ void Bonsai::create_file(std::string path) {
 
         path.erase(0, pos + 1);
     }
-    // debug.printf("%s\r\n", handle.c_str());
+}
+
+void Bonsai::delete_file(std::string path) {
+    if (path.back() != '/') {
+        path += '/';
+    }
+
+    size_t pos = 0;
+    uint32_t current_addr = ROOT_DIRECTORY_ADDRESS;
+    uint32_t prev_addr = current_addr;
+    std::string handle;
+
+    uint32_t found_addr = U32_FLASH_RESET_VALUE;
+
+    const auto saved = fsa;
+    while ((pos = path.find("/")) != std::string::npos) {
+        handle = path.substr(0, pos);
+        found_addr = find(current_addr, handle);
+        prev_addr = current_addr;
+        current_addr = found_addr;
+        path.erase(0, pos + 1);
+    }
+    found_addr = find(current_addr, handle);
+    del(found_addr);
+    remove_child_addr(prev_addr, found_addr);
 }
