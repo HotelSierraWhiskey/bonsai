@@ -19,7 +19,7 @@
     #error BONSAI_MEMORY_END not defined.
 #endif
 #if (BONSAI_MEMORY_END % ROW_SIZE)
-    #error BONSAI_MEMORY_END must is not a row boundary address
+    #error BONSAI_MEMORY_END is not a row boundary address
 #endif
 
 #define SYSTEM_FILE_ADDRESS BONSAI_MEMORY_START
