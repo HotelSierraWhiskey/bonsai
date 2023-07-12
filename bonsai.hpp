@@ -58,9 +58,9 @@ class Bonsai {
 
     /* Top level API */
     void create_file(std::string path);
-    void delete_file(const std::string path);
-    void move_file(const std::string dest, const std::string src);
-    void read_file(const std::string path);
+    void delete_file(std::string path);
+    void move_file(std::string dest, std::string src);
+    void read_file(std::string path);
 };
 
 #endif
