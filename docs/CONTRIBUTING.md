@@ -4,12 +4,12 @@
 I'm going to eventually integrate an easy way for contributers to compile and upload Bonsai firmware for themselves. For the time being, you can fork the repo, make your changes in a new branch, and run `make compile` just to be sure your changes are okay. Then submit a PR. I compile the firmware with arm-none-eabi-g++ but it will also compile with g++ just fine.
 
 ### Ways to Contribute
-- Unit tests are always welcome. To write a unit test, create a directory with the name of your test in bonsai/tests. Write your test there. Check out the unit test example there already and use it as a template.
+- Unit tests are always welcome. To write a unit test, create a directory with the name of your test in bonsai/tests. Write your test there. Check out the [unit test example](../tests/unit_test_example) and use it as a template.
 - Refactors that better organize the project and/ or decrease LoC or are welcome. No dynamic memory allocation please.
 - The firmware currently lacks a lot of documentation. If you're good at writing documentation, have at 'er.
 
 ### More on Unit Tests
-You can safely assume that all unit tests will be run on hardware without a preexisting Bonsai partition. Please try and keep any addressing between `0x19000` and `20000`. It will always be the case that some features are more ready for testing than others. As of this writing, the high level API is still being written. So it's probably a good idea to limit any units tests to the basic methods like `put`, `get`, `mov`, `del`, `write_fsa` and the file editing methods. Here is the example unit test provided in the tests directory.
+You can safely assume that all unit tests will be run on hardware without a preexisting Bonsai partition. Please try and keep any addressing between `0x19000` and `20000`. It will always be the case that some features are more ready for testing than others. Here is the example unit test provided in the tests directory.
 
 ```c++
 /* Current directory: bonsai/tests/unit_test_example/ */
@@ -25,4 +25,4 @@ void unit_test_example(void) {
 }
 ```
 
-Feel free to write larger tests than this one, but do try to test a specific feature or interation. Once you submit a unit test, I'll run it on hardware and mark it as either pass/ fail.
+Feel free to write larger tests than this one, but do try to test a specific feature. Once you submit a unit test, I'll run it on hardware and mark it as either pass/ fail.
