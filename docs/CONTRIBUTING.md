@@ -9,6 +9,12 @@ I'm going to eventually integrate an easy way for contributers to compile and up
 - The firmware currently lacks a lot of documentation. If you're good at writing documentation, have at 'er.
 
 ### More on Unit Tests
+Initialize a unit test template by running
+
+`make test name_of_my_test`
+
+`name_of_my_test` should be replaced with the name of your unit test. This command will generate a header and implementation file in the new directory bonsai/tests/name_of_my_test.
+
 You can safely assume that all unit tests will be run on hardware without a preexisting Bonsai partition. Please try and keep any addressing between `0x19000` and `20000`. It will always be the case that some features are more ready for testing than others. Here is the example unit test provided in the tests directory.
 
 ```c++
