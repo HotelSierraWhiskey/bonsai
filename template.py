@@ -7,26 +7,23 @@ def generate_template(fname):
     try:
         os.mkdir(path)
 
-        def write_line(f, s=None): return f.writelines(
-            s + '\n') if s else f.writelines('\n')
+        with open(f'{path}/{fname}.hpp', 'w+') as file:
 
-        with open(f'{path}/{fname}.hpp', 'w+') as f:
+            file.writelines(f'#ifndef {fname.upper()}_HPP\n')
+            file.writelines(f'#define {fname.upper()}_HPP\n')
+            file.writelines('\n')
+            file.writelines('#include "bonsai/tests/test.hpp"\n')
+            file.writelines('\n')
+            file.writelines(f'extern void {fname}(void);\n')
+            file.writelines('\n')
+            file.writelines(f'#endif\n')
 
-            write_line(f, f'#ifndef {fname.upper()}_HPP')
-            write_line(f, f'#define {fname.upper()}_HPP')
-            write_line(f)
-            write_line(f, '#include "bonsai/tests/test.hpp"')
-            write_line(f)
-            write_line(f, f'extern void {fname}(void);')
-            write_line(f)
-            write_line(f, f'#endif')
+        with open(f'{path}/{fname}.cpp', 'w+') as file:
 
-        with open(f'{path}/{fname}.cpp', 'w+') as f:
+            file.writelines(f'#include "{fname}.hpp"\n')
+            file.writelines('\n')
+            file.writelines(f'void {fname}(void)' + ' { }\n')
 
-            write_line(f, f'#include "{fname}.hpp"')
-            write_line(f)
-            write_line(f, f'void {fname}(void)' + ' { }')
-        
         print(f'created template in bonsai/tests/{fname}')
 
     except Exception as e:
