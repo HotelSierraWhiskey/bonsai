@@ -35,10 +35,15 @@ class Bonsai {
 
     /* edit.cpp */
     void edit_file_handle(const uint32_t address, const std::string handle);
+    void edit_file_handle(std::string path, const std::string handle);
     void edit_file_data(const uint32_t address, const std::string data);
+    void edit_file_data(std::string path, const std::string data);
     void edit_file_parent_addr(const uint32_t address, const uint32_t parent_addr);
+    void edit_file_parent_addr(std::string path, const uint32_t parent_addr);
     void add_child_addr(const uint32_t address, uint32_t child_addr);
+    void add_child_addr(std::string path, uint32_t child_addr);
     void remove_child_addr(const uint32_t address, const uint32_t child_addr);
+    void remove_child_addr(std::string path, const uint32_t child_addr);
 
     /* api.cpp */
     void create_file(std::string path);
