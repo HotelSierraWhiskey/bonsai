@@ -2,7 +2,7 @@
 ### A tiny, persistent file manager for ARM-based embedded systems.
 
 ![license](https://img.shields.io/badge/license-MIT-green)
-![license](https://img.shields.io/badge/version-v0.1.0-yellow)
+![license](https://img.shields.io/badge/version-0.1.0-yellow)
 
 
 <p align="center">
