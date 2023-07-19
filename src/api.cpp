@@ -17,7 +17,9 @@ void Bonsai::create_file(std::string path) {
         if (curr_addr == U32_FLASH_RESET_VALUE) {
             curr_addr = fsa;
             put_blank_file(handle, prev_addr, curr_addr);
+            auto saved_fsa = fsa;
             add_child_addr(prev_addr, curr_addr);
+            fsa = saved_fsa;
         }
 
         prev_addr = curr_addr;
