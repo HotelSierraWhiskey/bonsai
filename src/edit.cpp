@@ -7,6 +7,26 @@ void Bonsai::edit_file_handle(const uint32_t address, const std::string handle) 
     put(file, address);
 }
 
+void Bonsai::edit_file_handle(std::string path, const std::string handle) {
+    if (path.back() != '/') {
+        path += '/';
+    }
+
+    size_t pos = 0;
+    std::string old_handle;
+
+    while ((pos = path.find("/")) != std::string::npos) {
+        old_handle = path.substr(0, pos);
+        path.erase(0, pos + 1);
+    }
+
+    auto addr = find(ROOT_DIRECTORY_ADDRESS, old_handle);
+
+    if (addr != U32_FLASH_RESET_VALUE) {
+        edit_file_handle(addr, handle);
+    }
+}
+
 void Bonsai::edit_file_data(const uint32_t address, const std::string data) {
     auto file = get(address);
     file.data = (uint8_t *)data.c_str();
