@@ -48,10 +48,10 @@ file_t Bonsai::get(const uint32_t address) {
     uint8_t handle_size = *p++;
     uint16_t data_size = *p++ << 8 | *p++;
 
-    uint32_t parent_addr = *p++ << 24 | //
-                           *p++ << 16 | //
-                           *p++ << 8 |  //
-                           *p++;        //
+    uint32_t parent_addr = *p++         |   //
+                           *p++ << 8    |   //
+                           *p++ << 16   |   //
+                           *p++ << 24;      //
 
     uint8_t num_child_addrs = *p++;
 
