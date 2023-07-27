@@ -18,6 +18,7 @@
 
 ## Examples
 
+
 ### Create a file.
 In this example a file called networking is created in root/config.
 If config doesn't exist, Bonsai will create it and place networking inside of it.
@@ -33,6 +34,8 @@ The file old_data is deleted, along with its contents.
 Bonsai bonsai;
 bonsai.delete_file("root/config/old_data");
 ```
+
+See the [complete API](docs/API.md) for more information.
 
 ## Contribute
 Check out [how to contribute](docs/CONTRIBUTING.md).
