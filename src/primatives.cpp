@@ -117,3 +117,20 @@ uint32_t Bonsai::find(const uint32_t root, const std::string handle) {
     }
     return U32_FLASH_RESET_VALUE;
 }
+
+uint32_t Bonsai::find(std::string path) {
+    if (path.back() != '/') {
+        path += '/';
+    }
+
+    size_t pos = 0;
+    std::string handle;
+
+    while ((pos = path.find("/")) != std::string::npos) {
+        handle = path.substr(0, pos);
+        path.erase(0, pos + 1);
+    }
+
+    auto addr = find(ROOT_DIRECTORY_ADDRESS, handle);
+    return addr;
+}

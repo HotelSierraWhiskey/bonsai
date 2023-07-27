@@ -32,6 +32,7 @@ class Bonsai {
     void del(const uint32_t address);
     void mov(const uint32_t dest, const uint32_t src);
     uint32_t find(const uint32_t root, const std::string handle);
+    uint32_t find(std::string path);
 
     /* edit.cpp */
     void edit_file_handle(const uint32_t address, const std::string handle);
