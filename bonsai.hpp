@@ -11,6 +11,7 @@ class Bonsai {
     Nvmc nvm;
     part_t part;
     void init(void);
+    void delete_recursive(uint32_t root);
 
   public:
     uint32_t fsa;
@@ -19,7 +20,7 @@ class Bonsai {
     Bonsai(void);
     part_t get_part(void);
     system_file_data_t *get_sfd(void);
-    void erase(void);
+    void reset(void);
     uint32_t read_fsa(void);
     void write_fsa(uint32_t address = 0x00);
     uint32_t update_fsa(uint32_t address, uint32_t increment);
@@ -27,7 +28,8 @@ class Bonsai {
     /* primatives.cpp */
     void put(file_t &file);
     void put(file_t &file, uint32_t address);
-    void put_blank_file(const std::string name, uint32_t parent_address = ROOT_DIRECTORY_ADDRESS, uint32_t address = 0x00);
+    void put_blank_file(const std::string name, uint32_t parent_address = ROOT_DIRECTORY_ADDRESS,
+                        uint32_t address = 0x00);
     file_t get(const uint32_t address);
     void del(const uint32_t address);
     void mov(const uint32_t dest, const uint32_t src);
@@ -49,9 +51,9 @@ class Bonsai {
     /* api.cpp */
     void create_file(std::string path);
     void delete_file(std::string path);
-    void delete_subfiles(uint32_t root);
     void move_file(std::string dest, std::string src);
     void read_file(std::string path);
+    void write_to_file(std::string path, std::string data);
 };
 
 #endif
