@@ -29,13 +29,14 @@ part_t Bonsai::get_part(void) {
     return part; //
 }
 
-void Bonsai::erase(void) {
+void Bonsai::reset(void) {
     uint32_t address = SYSTEM_FILE_ADDRESS;
     while (address < BONSAI_MEMORY_END) {
         nvm.erase_row(address);
         address += ROW_SIZE;
     }
     write_fsa(ROOT_DIRECTORY_ADDRESS);
+    init();
 }
 
 system_file_data_t *Bonsai::get_sfd(void) {
