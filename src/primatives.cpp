@@ -34,7 +34,7 @@ void Bonsai::put_blank_file(const std::string name, uint32_t parent_address, uin
     file_t file = {
         .handle_size = (uint8_t)name.size(),
         .data_size = 0,
-        .parent_addr = reverse_addr(parent_address),
+        .parent_addr = parent_address,  // reverse_addr(parent_address), // All addresses should be stored LSB
         .num_child_addrs = 0,
         .handle = (uint8_t *)name.c_str(),
         .data = (uint8_t *)nullptr,
