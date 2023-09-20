@@ -38,6 +38,8 @@ bonsai.delete_file("root/config/old_data");
 See the [complete API](docs/API.md) for more information.
 
 ## Contribute
+Contributions are most welcome.
+
 Check out [how to contribute](docs/CONTRIBUTING.md).
 
 ## File Structure
