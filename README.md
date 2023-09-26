@@ -21,8 +21,8 @@
 
 ### Create a file.
 In this example a file called networking is created in root/config.
-If config doesn't exist, Bonsai will create it and place networking inside of it.
-The root directory is created by default when a `Bonsai` instance is instantiated.
+If the config file doesn't exist, Bonsai will create it and place networking inside of it.
+The root directory is created by default when a `Bonsai` class is instantiated.
 ```c++
 Bonsai bonsai;
 bonsai.create_file("root/config/networking");
