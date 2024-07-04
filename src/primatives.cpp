@@ -1,4 +1,5 @@
 #include "bonsai/bonsai.hpp"
+#include <cstring>
 
 void Bonsai::put(file_t &file) {
     uint32_t fsize = file.size();

@@ -2,6 +2,8 @@
 #define BONSAI_INTERNAL_HPP
 
 #include "config.hpp"
+#include <cstdint>
+#include <array>
 
 #define PAGE_SIZE 0x40
 #define PAGES_PER_ROW 0x04
@@ -31,12 +33,12 @@
 
 #define PART_TABLE_SIZE 71
 
-typedef struct {
+struct part_t {
     char name[16];
     uint32_t memory;
     uint32_t variant;
     uint32_t devsel;
-} part_t;
+};
 
 extern const std::array<part_t, PART_TABLE_SIZE> part_table;
 

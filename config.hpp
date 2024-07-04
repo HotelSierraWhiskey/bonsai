@@ -1,8 +1,7 @@
 #ifndef BONSAI_CONFIG_HPP
 #define BONSAI_CONFIG_HPP
 
-#include "includes.hpp"
-
+// TODO: move version to a new header file
 /* Current Bonsai version */
 #define BONSAI_VERSION_MAJOR 0
 #define BONSAI_VERSION_MINOR 1

@@ -1,4 +1,5 @@
 #include "bonsai/bonsai.hpp"
+#include "bonsai/utils.hpp"
 
 void Bonsai::edit_file_handle(const uint32_t address, const std::string handle) {
     auto file = get(address);

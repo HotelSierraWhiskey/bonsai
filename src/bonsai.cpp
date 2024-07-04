@@ -1,5 +1,7 @@
 #include "bonsai/bonsai.hpp"
 
+#include <cstring>
+
 Bonsai::Bonsai(void) {
     uint32_t *device_id = (uint32_t *)DSU_DID_REGISTER_BASE_ADDRESS;
     uint32_t variant = ((*device_id) & (VARIANT_MASK << VARIANT_POS)) >> VARIANT_POS;

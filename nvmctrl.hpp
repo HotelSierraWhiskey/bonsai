@@ -1,8 +1,9 @@
 #ifndef BONSAI_NVMCTRL_HPP
 #define BONSAI_NVMCTRL_HPP
 
-#include "includes.hpp"
+#include <cstdint>
 
+// TODO: add a comment for description of each of the below macros
 /* MCLOCK */
 #define MCLOCK_BASE_ADDRESS 0x40000800
 #define AHBMASK_OFFSET 0x10
@@ -10,11 +11,13 @@
 #define MCLOCK_AHBMASK_ADDRESS (MCLOCK_BASE_ADDRESS + AHBMASK_OFFSET)
 #define MCLOCK_APBBMASK_ADDRESS (MCLOCK_BASE_ADDRESS + APBBMASK_OFFSET)
 
+// TODO: add a comment for description this function
 constexpr void nvmctrl_AHB_clock_enable(void) {
     uint32_t *ahb_mask_register = (uint32_t *)MCLOCK_AHBMASK_ADDRESS;
     *ahb_mask_register |= (1 << 0x05);
 }
 
+// TODO: add a comment for description this function
 constexpr void nvmctrl_APBB_clock_enable(void) {
     uint32_t *apbb_mask_register = (uint32_t *)MCLOCK_APBBMASK_ADDRESS;
     *apbb_mask_register |= (1 << 0x02);
@@ -27,7 +30,8 @@ constexpr void nvmctrl_APBB_clock_enable(void) {
     #define NVMCTRL_BASE_ADDRESS 0x41004000
 #endif
 
-typedef struct {
+// TODO: add a comment for description for each field of this struct
+struct nvmctrl_regs_t {
     volatile uint16_t NVMCTRL_CTRLA;
     volatile uint8_t Reserved1[0x02];
     volatile uint32_t NVMCTRL_CTRLB;
@@ -45,8 +49,9 @@ typedef struct {
     volatile uint8_t Reserved6[0x06];
     volatile uint32_t NVMCTRL_PBLDATA0;
     volatile uint32_t NVMCTRL_PBLDATA1;
-} nvmctrl_regs_t;
+};
 
+// TODO: why static?
 static constexpr nvmctrl_regs_t *get_nvmctrl(void) {
     auto nvmctrl = (nvmctrl_regs_t *)NVMCTRL_BASE_ADDRESS;
     return nvmctrl;
@@ -55,17 +60,17 @@ static constexpr nvmctrl_regs_t *get_nvmctrl(void) {
 /* ************************************************************************** */
 
 class Nvmc {
+    // TODO: Add a comment for description of each enum values
     enum class CMD {
         ER = 0x02U,
         WP = 0x04U,
         PBC = 0x44U,
     };
 
-  private:
     void execute(CMD cmd);
     volatile uint16_t *nvm_memory;
 
-  public:
+public:
     nvmctrl_regs_t *nvmctrl;
     Nvmc(void);
     void write_page(uint32_t address, uint8_t *buffer);
