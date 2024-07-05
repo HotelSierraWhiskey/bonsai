@@ -5,6 +5,7 @@
 #include "internal.hpp"
 #include "nvmctrl.hpp"
 #include "system_file.hpp"
+#include <string>
 
 class Bonsai {
   private:

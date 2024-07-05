@@ -1,11 +1,11 @@
 #ifndef BONSAI_FILE_HPP
 #define BONSAI_FILE_HPP
 
-#include "includes.hpp"
+#include <cstdint>
 
 #define MAX_HANDLE_SIZE 0xFE
 
-typedef struct {
+struct file_t {
     uint8_t handle_size;
     uint16_t data_size;
     uint32_t parent_addr;
@@ -21,9 +21,13 @@ typedef struct {
                (num_child_addrs * sizeof(uint32_t)); //
     }
     uint32_t location(void) {
+        // FIXME: if handle is nullptr, can it cause problems?
         return (uint32_t)(handle - 8); //
     }
     void to_buffer(uint8_t *buffer) {
+        // FIXME: buffer accessed without checking if its nullptr, can cause SEGSIGV
+        // TODO: add a test by passing nullptr to this function
+
         uint8_t mask = 0xFF;
         uint32_t index = 0;
 
@@ -60,6 +64,6 @@ typedef struct {
         }
         return;
     }
-} file_t;
+};
 
 #endif
